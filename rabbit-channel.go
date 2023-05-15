@@ -42,9 +42,9 @@ func (r RabbitChannel) RunConsumerWithPrefetch(rabbitConsumerEntity RabbitConsum
 	}
 }
 
-func CreateRabbitChannelWithURL(queueName string, connectionURL string) (RabbitChannel, error) {
+func CreateRabbitChannelWithURL(queueName string, connectionURL string, exchange string) (RabbitChannel, error) {
 	rabbitChannel := RabbitChannel{}
-	conn, ch, deferFunc := getRabbitChannel(connectionURL)
+	conn, ch, deferFunc := getRabbitChannel(connectionURL, exchange)
 
 	queue, err := ch.QueueDeclare(queueName, true, false, false, false, nil)
 	if err != nil {
@@ -63,7 +63,7 @@ func CreateRabbitChannelWithURL(queueName string, connectionURL string) (RabbitC
 	return rabbitChannel, nil
 }
 
-func getRabbitChannel(connectionURL string) (*amqp.Connection, *amqp.Channel, func(connection *amqp.Connection)) {
+func getRabbitChannel(connectionURL string, exchange string) (*amqp.Connection, *amqp.Channel, func(connection *amqp.Connection)) {
 	conn, err := amqp.DialTLS(connectionURL, nil)
 	if err != nil {
 		log.Println(err)
@@ -72,6 +72,19 @@ func getRabbitChannel(connectionURL string) (*amqp.Connection, *amqp.Channel, fu
 	channel, err := conn.Channel()
 	if err != nil {
 		log.Println(err)
+		return nil, nil, nil
+	}
+
+	err = channel.ExchangeDeclare(
+		exchange,
+		"direct",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
 		return nil, nil, nil
 	}
 
