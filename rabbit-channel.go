@@ -9,6 +9,8 @@ import (
 	"github.com/streadway/amqp"
 )
 
+// A RabbitChannel stores all objects needed to
+// work with RabbitMQ using amqp protocol.
 type RabbitChannel struct {
 	Connection *amqp.Connection
 	Channel    *amqp.Channel
@@ -20,9 +22,22 @@ type RabbitConsumer interface {
 	Consume(d amqp.Delivery) error
 }
 
-func (r RabbitChannel) ConsumeRabbit(rc RabbitConsumer) {
-	err := r.ConsumeRabbitChannel(rc.Consume)
+func (r RabbitChannel) RunConsumerOne(rabbitConsumerEntity RabbitConsumer) {
+	err := r.ConsumeRabbitChannel(rabbitConsumerEntity.Consume)
 	if err != nil {
+		return
+	}
+}
+
+func (r RabbitChannel) RunConsumerWithPrefetch(rabbitConsumerEntity RabbitConsumer, prefetchCount int) {
+	err := r.Channel.Qos(prefetchCount, 0, false)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	err = r.ConsumeRabbitChannel(rabbitConsumerEntity.Consume)
+	if err != nil {
+		log.Println(err)
 		return
 	}
 }
@@ -49,7 +64,7 @@ func CreateRabbitChannel(queueName string) (RabbitChannel, error) {
 }
 
 func getRabbitChannel() (*amqp.Connection, *amqp.Channel, func(connection *amqp.Connection)) {
-	conn, err := amqp.DialTLS("amqps://bludev:Blu.Sand1234@rabbitmq-lb.bluconsole.com:5671/blu-vhost", nil)
+	conn, err := amqp.DialTLS("", nil)
 	if err != nil {
 		log.Println(err)
 		return nil, nil, nil
