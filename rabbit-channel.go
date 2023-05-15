@@ -42,9 +42,9 @@ func (r RabbitChannel) RunConsumerWithPrefetch(rabbitConsumerEntity RabbitConsum
 	}
 }
 
-func CreateRabbitChannel(queueName string) (RabbitChannel, error) {
+func CreateRabbitChannelWithURL(queueName string, connectionURL string) (RabbitChannel, error) {
 	rabbitChannel := RabbitChannel{}
-	conn, ch, deferFunc := getRabbitChannel()
+	conn, ch, deferFunc := getRabbitChannel(connectionURL)
 
 	queue, err := ch.QueueDeclare(queueName, true, false, false, false, nil)
 	if err != nil {
@@ -63,8 +63,8 @@ func CreateRabbitChannel(queueName string) (RabbitChannel, error) {
 	return rabbitChannel, nil
 }
 
-func getRabbitChannel() (*amqp.Connection, *amqp.Channel, func(connection *amqp.Connection)) {
-	conn, err := amqp.DialTLS("", nil)
+func getRabbitChannel(connectionURL string) (*amqp.Connection, *amqp.Channel, func(connection *amqp.Connection)) {
+	conn, err := amqp.DialTLS(connectionURL, nil)
 	if err != nil {
 		log.Println(err)
 		return nil, nil, nil
