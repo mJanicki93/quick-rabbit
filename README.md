@@ -4,11 +4,13 @@ Library for creating services connected by RabbitMQ in fast way
 
 
 Publisher service example:
+
 ```go
 package main
 
 import (
 	"log"
+	quick_rabbit "quick-rabbit"
 )
 
 type MyMessage struct {
@@ -18,10 +20,7 @@ type MyMessage struct {
 }
 
 func main() {
-	rabbitChannel, err := CreateRabbitChannelWithURL("myFirstQueue", "amqp://guest:guest@localhost:5672/", "services")
-	if err != nil {
-		log.Println(err)
-	}
+	rabbitChannel := quick_rabbit.NewRabbitWithURL("amqp://guest:guest@localhost:5672/", "services")
 
 	message := MyMessage{
 		Name:     "John",
@@ -29,7 +28,7 @@ func main() {
 		Age:      29,
 	}
 
-	rabbitChannel.PublishToRabbitChannel(message)
+	rabbitChannel.PushToQueue("my-firs-queue", message)
 }
 
 ```
@@ -46,13 +45,11 @@ import (
 type MyConsumer struct{}
 
 func main() {
-	rabbitChannel, err := CreateRabbitChannelWithURL("myFirstQueue", "amqp://guest:guest@localhost:5672/", "services")
-	if err != nil {
-		log.Println(err)
-	}
+	rabbitChannel := quick_rabbit.NewRabbitWithURL("amqp://guest:guest@localhost:5672/", "services")
+	
 
 	consumerEntity := MyConsumer{}
-	rabbitChannel.RunConsumerOne(consumerEntity)
+	rabbitChannel.RunConsumerOne(consumerEntity, "my-first-queue")
 
 }
 
