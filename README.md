@@ -9,7 +9,6 @@ Publisher service example:
 package main
 
 import (
-	"log"
 	quick_rabbit "quick-rabbit"
 )
 
@@ -39,7 +38,7 @@ package main
 
 import (
 	"github.com/streadway/amqp"
-	"log"
+	quick_rabbit "quick-rabbit"
 )
 
 type MyConsumer struct{}
